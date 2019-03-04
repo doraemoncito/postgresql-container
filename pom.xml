@@ -1,0 +1,153 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>org.doraemoncito</groupId>
+    <artifactId>postgresql-container</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>pom</packaging>
+    <name>PostgreSQL container</name>
+    <description>PostgreSQL database bound with flyway and encapsulated in a docker container</description>
+    <properties>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+
+        <java.version>11</java.version>
+        <maven.version>3.6.0</maven.version>
+
+        <maven.compiler.source>${java.version}</maven.compiler.source>
+        <maven.compiler.target>${java.version}</maven.compiler.target>
+
+        <docker.registry.url>localhost.localdomain</docker.registry.url>
+        <docker.image.name>${docker.registry.url}/${project.artifactId}</docker.image.name>
+        <docker.pull.on.build>true</docker.pull.on.build>
+
+        <dockerfile-maven-plugin.version>1.4.10</dockerfile-maven-plugin.version>
+        <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
+        <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
+
+        <flyway-commandline.version>6.0.0-beta</flyway-commandline.version>
+    </properties>
+    <dependencies>
+        <dependency>
+            <groupId>org.flywaydb</groupId>
+            <artifactId>flyway-commandline</artifactId>
+            <version>${flyway-commandline.version}</version>
+            <classifier>linux-x64</classifier>
+            <type>tar.gz</type>
+            <scope>provided</scope>
+        </dependency>
+    </dependencies>
+    <build>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-dependency-plugin</artifactId>
+                <version>${maven-dependency-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>copy</goal>
+                        </goals>
+                        <configuration>
+                            <artifactItems>
+                                <artifactItem>
+                                    <groupId>org.flywaydb</groupId>
+                                    <artifactId>flyway-commandline</artifactId>
+                                    <version>${flyway-commandline.version}</version>
+                                    <classifier>linux-x64</classifier>
+                                    <type>tar.gz</type>
+                                    <outputDirectory>${project.build.directory}/docker</outputDirectory>
+                                    <overWrite>false</overWrite>
+                                </artifactItem>
+                            </artifactItems>
+                            <stripClassifier>true</stripClassifier>
+                            <stripVersion>true</stripVersion>
+                            <overWriteIfNewer>true</overWriteIfNewer>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-resources-plugin</artifactId>
+                <version>${maven-resources-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>copy-scripts</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/docker</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <resources>
+                                <resource>
+                                    <directory>src/main/resources</directory>
+                                    <includes>
+                                        <include>db/**</include>
+                                    </includes>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                    <execution>
+                        <id>copy-docker</id>
+                        <phase>generate-resources</phase>
+                        <goals>
+                            <goal>copy-resources</goal>
+                        </goals>
+                        <configuration>
+                            <outputDirectory>${project.build.directory}/docker</outputDirectory>
+                            <overwrite>true</overwrite>
+                            <resources>
+                                <resource>
+                                    <directory>${project.basedir}/src/main/docker</directory>
+                                    <includes>
+                                        <include>**</include>
+                                    </includes>
+                                    <filtering>true</filtering>
+                                </resource>
+                            </resources>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>com.spotify</groupId>
+                <artifactId>dockerfile-maven-plugin</artifactId>
+                <version>${dockerfile-maven-plugin.version}</version>
+                <configuration>
+                    <repository>${docker.image.name}</repository>
+                    <dockerfile>${project.build.directory}/docker/Dockerfile</dockerfile>
+                    <contextDirectory>${project.build.directory}/docker</contextDirectory>
+                    <registryUrl>${docker.registry.url}</registryUrl>
+                    <pullOnBuild>${docker.pull.on.build}</pullOnBuild>
+                    <tag>${project.version}</tag>
+                    <!-- skip writing the test metadata to ${project.build.directory}/docker or copy the resources to -->
+                    <!-- a directory other than ${project.build.directory}/docker because the dockerfile-maven-plugin -->
+                    <!-- itself uses that directory to write metadata that that conflicts with the build.             -->
+                    <!-- See https://github.com/spotify/dockerfile-maven/issues/75 for more details.                  -->
+                    <writeTestMetadata>false</writeTestMetadata>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>build</id>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>build</goal>
+                        </goals>
+                    </execution>
+                    <execution>
+                        <id>deploy</id>
+                        <phase>deploy</phase>
+                        <goals>
+                            <goal>push</goal>
+                        </goals>
+                    </execution>
+                </executions>
+            </plugin>
+        </plugins>
+    </build>
+</project>
