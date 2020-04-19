@@ -22,11 +22,11 @@
         <docker.image.name>${docker.registry.url}/${project.artifactId}</docker.image.name>
         <docker.pull.on.build>true</docker.pull.on.build>
 
-        <dockerfile-maven-plugin.version>1.4.10</dockerfile-maven-plugin.version>
-        <maven-dependency-plugin.version>3.1.1</maven-dependency-plugin.version>
+        <dockerfile-maven-plugin.version>1.4.13</dockerfile-maven-plugin.version>
+        <maven-dependency-plugin.version>3.1.2</maven-dependency-plugin.version>
         <maven-resources-plugin.version>3.1.0</maven-resources-plugin.version>
 
-        <flyway-commandline.version>6.0.0-beta</flyway-commandline.version>
+        <flyway-commandline.version>6.3.3</flyway-commandline.version>
     </properties>
     <dependencies>
         <dependency>
@@ -122,8 +122,8 @@
                     <repository>${docker.image.name}</repository>
                     <dockerfile>${project.build.directory}/docker/Dockerfile</dockerfile>
                     <contextDirectory>${project.build.directory}/docker</contextDirectory>
-                    <registryUrl>${docker.registry.url}</registryUrl>
-                    <pullOnBuild>${docker.pull.on.build}</pullOnBuild>
+<!--                    <registryUrl>${docker.registry.url}</registryUrl>-->
+<!--                    <pullOnBuild>${docker.pull.on.build}</pullOnBuild>-->
                     <tag>${project.version}</tag>
                     <!-- skip writing the test metadata to ${project.build.directory}/docker or copy the resources to -->
                     <!-- a directory other than ${project.build.directory}/docker because the dockerfile-maven-plugin -->
