@@ -16,7 +16,7 @@ echo "============================================================"
 # https://www.postgresql.org/docs/11/client-authentication.html
 pg_ctl --options "-c listen_addresses='localhost'" --wait restart
 
-cd db
+cd db || exit
 /flyway/flyway -user="$POSTGRES_USER" -password="$POSTGRES_PASSWORD" -configFiles=/db/configuration/postgres/flyway.properties -url="jdbc:postgresql://localhost:$PGPORT/$POSTGRES_DB?user=$POSTGRES_USER" -locations="filesystem:/db/migration" info migrate info
 cd..
 
