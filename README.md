@@ -45,5 +45,3 @@ jdbc:postgresql://localhost:5432/postgres
 
 - [postgres - Docker Official Images](https://hub.docker.com/_/postgres)
 - [Docker Library PostgreSQL on GitHub](https://github.com/docker-library/postgres)
-- ["exec: \"docker-entrypoint.sh\": executable file not found in $PATH". #296](https://github.com/docker-library/postgres/issues/296)
-- [Sending RUN ["docker-entrypoint.sh", "postgres", "--version"] output to the console during the build #718](https://github.com/docker-library/postgres/issues/718)

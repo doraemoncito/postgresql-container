@@ -30,6 +30,4 @@ ENV PGDATA=/var/lib/postgresql-static/data \
     PGPORT=5432 \
     JAVA_HOME=/usr/lib/jvm/java-11-openjdk
 
-# Invoke entrypoint to create and populate the database with flyway, then exit.  Please note that we use the
-# --version switch to prevent docker-entrypoint.sh from leaving postgres running after the image is built.
-RUN ["docker-entrypoint.sh", "postgres", "--version"]
+RUN ["docker-entrypoint.sh", "postgres"]
