@@ -122,9 +122,9 @@
                     <repository>${docker.image.name}</repository>
                     <dockerfile>${project.build.directory}/docker/Dockerfile</dockerfile>
                     <contextDirectory>${project.build.directory}/docker</contextDirectory>
-<!--                    <registryUrl>${docker.registry.url}</registryUrl>-->
-<!--                    <pullOnBuild>${docker.pull.on.build}</pullOnBuild>-->
                     <tag>${project.version}</tag>
+<!--                    NOTE: dockerfile-maven-plugin does not appear to be able to tag the same image with multiple labels-->
+<!--                    <tag>latest</tag>-->
                     <!-- skip writing the test metadata to ${project.build.directory}/docker or copy the resources to -->
                     <!-- a directory other than ${project.build.directory}/docker because the dockerfile-maven-plugin -->
                     <!-- itself uses that directory to write metadata that that conflicts with the build.             -->
@@ -132,6 +132,7 @@
                     <writeTestMetadata>false</writeTestMetadata>
                 </configuration>
                 <executions>
+                    <!-- Build the docker image using the Maven project version as the tag -->
                     <execution>
                         <id>build</id>
                         <phase>package</phase>
@@ -139,12 +140,25 @@
                             <goal>build</goal>
                         </goals>
                     </execution>
+                    <!-- Tag the newly built docker image using the 'latest' tag -->
+                    <execution>
+                        <id>tag-latest</id>
+                        <goals>
+                            <goal>tag</goal>
+                        </goals>
+                        <configuration>
+                            <tag>latest</tag>
+                        </configuration>
+                    </execution>
                     <execution>
                         <id>deploy</id>
                         <phase>deploy</phase>
                         <goals>
                             <goal>push</goal>
                         </goals>
+                        <configuration>
+                            <tag>${project.version}</tag>
+                        </configuration>
                     </execution>
                 </executions>
             </plugin>
