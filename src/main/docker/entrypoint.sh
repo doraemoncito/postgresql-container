@@ -44,7 +44,7 @@ if [ -z "$DATABASE_ALREADY_EXISTS" ]; then
   # https://www.postgresql.org/docs/11/client-authentication.html
   pg_ctl --options "-c listen_addresses='localhost'" --wait restart
 
-  /flyway/flyway -user="$POSTGRES_USER" -password="$POSTGRES_PASSWORD" -configFiles=/db/configuration/postgres/flyway.properties -url="jdbc:postgresql://localhost:$PGPORT/$POSTGRES_DB?user=$POSTGRES_USER" -locations="filesystem:/db/migration" info migrate info
+  /flyway/flyway -user="$POSTGRES_USER" -password="$POSTGRES_PASSWORD" -configFiles=/db/configuration/postgres/flyway.properties -url="jdbc:postgresql://localhost:$PGPORT/$POSTGRES_DB?user=$POSTGRES_USER" -locations="filesystem:/db/migration" info migrate info || exit 1
 
 	docker_process_init_files /docker-entrypoint-initdb.d/*
 
@@ -57,7 +57,7 @@ else
   # https://www.postgresql.org/docs/11/client-authentication.html
   pg_ctl --options "-c listen_addresses='localhost'" --wait restart
 
-  /flyway/flyway -user="$POSTGRES_USER" -password="$POSTGRES_PASSWORD" -configFiles=/db/configuration/postgres/flyway.properties -url="jdbc:postgresql://localhost:$PGPORT/$POSTGRES_DB?user=$POSTGRES_USER" -locations="filesystem:/db/migration" info migrate info
+  /flyway/flyway -user="$POSTGRES_USER" -password="$POSTGRES_PASSWORD" -configFiles=/db/configuration/postgres/flyway.properties -url="jdbc:postgresql://localhost:$PGPORT/$POSTGRES_DB?user=$POSTGRES_USER" -locations="filesystem:/db/migration" info migrate info || exit 1
 
 	docker_process_init_files /always-initdb.d/*
 	docker_temp_server_stop
