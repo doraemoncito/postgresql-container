@@ -44,7 +44,7 @@ if [ -z "$DATABASE_ALREADY_EXISTS" ]; then
   # https://www.postgresql.org/docs/11/client-authentication.html
   pg_ctl --options "-c listen_addresses='localhost'" --wait restart
 
-  /flyway/flyway -user="$POSTGRES_USER" -password="$POSTGRES_PASSWORD" -configFiles=/db/configuration/postgres/flyway.properties -url="jdbc:postgresql://localhost:$PGPORT/$POSTGRES_DB?user=$POSTGRES_USER" -locations="filesystem:/db/migration" info migrate info || exit 1
+	# Remove flyway commandline invocation; migration should be handled by Flyway Core in Java
 
 	docker_process_init_files /docker-entrypoint-initdb.d/*
 
@@ -57,10 +57,18 @@ else
   # https://www.postgresql.org/docs/11/client-authentication.html
   pg_ctl --options "-c listen_addresses='localhost'" --wait restart
 
-  /flyway/flyway -user="$POSTGRES_USER" -password="$POSTGRES_PASSWORD" -configFiles=/db/configuration/postgres/flyway.properties -url="jdbc:postgresql://localhost:$PGPORT/$POSTGRES_DB?user=$POSTGRES_USER" -locations="filesystem:/db/migration" info migrate info || exit 1
+	# Remove flyway commandline invocation; migration should be handled by Flyway Core in Java
 
 	docker_process_init_files /always-initdb.d/*
 	docker_temp_server_stop
+fi
+
+# Run Flyway commandline to initialize the database
+if [ -x /flyway/flyway ]; then
+  echo "Running Flyway commandline migration..."
+  /flyway/flyway -configFiles=/db/configuration/postgres/flyway.properties migrate
+else
+  echo "Flyway commandline not found or not executable"
 fi
 
 echo "entrypoint.sh Completed"

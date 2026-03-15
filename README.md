@@ -2,35 +2,29 @@
 
 Docker image containing a PostgreSQL database and a schema migrator to simplify database schema upgrades.
 
+
 ## Building the Docker image
 
-### Using the Maven command line:
+Use the provided Makefile to build the Docker image and prepare the context:
 
-```shell script
-mvn clean install
+```shell
+make all
 ```
 
-### Using the Docker command line:
-From the top-level directory, run the following command to copy the build assets to the target directory:
+This will download Flyway, prepare the build context, and build the Docker image.
 
-```shell script
-mvn compile
+## Running the container
+
+After building, run:
+
+```shell
+make run
 ```
 
-Then go to the target directory and invoke Docker build as shown here:
+Or directly with Docker:
 
-```shell script
-pushd target/docker
-docker build . --tag localhost.localdomain/postgresql-container:latest --no-cache    
-popd
-```
-
-## Running the database
-
-Use the following command to the start the Database in a background docker container:
-
-```shell script
-docker run -p 5432:5432 --name postgres -d localhost.localdomain/postgresql-container:latest
+```shell
+docker run --name pg-flyway-test -e POSTGRES_DB=postgres -e POSTGRES_USER=postgres -e POSTGRES_PASSWORD=password -p 5432:5432 localhost.localdomain/postgresql-container:1.1.0-SNAPSHOT
 ```
 
 ## Connecting to the database
@@ -40,14 +34,40 @@ Use the following JDBC URL to connect to the database:
 ```text
 jdbc:postgresql://localhost:5432/postgres
 ```
-## Extending the database schema
 
-To extend the schema definition with the tables, data, etc, simply add new idempotent SQL scripts to the
-`src/main/resources/db/migration/` folder.
+Username: `postgres` Password: `password`
 
-The SQL script file names must follow the pattern
+## Schema migration
+
+Flyway is integrated via the commandline tool in the Docker container. Migration scripts should be placed in:
+
+`build/db/migration/`
+
+Scripts must follow the naming pattern:
+
 `SPRINT<zero padded three digit sprint number>_<zero padded two digit script order number>__<description>.sql`
-as shown in this example: `SPRINT001_01__Initial_database_revision.sql`.
+
+Example: `SPRINT001_01__Initial_database_revision.sql`
+
+## Cleaning up
+
+To remove all build artifacts, Docker containers, and images, use:
+
+```shell
+make distclean
+```
+
+This will stop and remove the Docker container and image, and clean build artifacts.
+
+## Makefile Output Suppression and Debug Mode
+
+By default, the Makefile suppresses output from Docker commands to keep logs clean. If you want to see all command output (for troubleshooting or detailed build information), run make with the `-d` flag:
+
+```shell
+make -d <target>
+```
+
+When debug mode is enabled, output suppression is disabled and all command output will be shown.
 
 ## Resources
 
