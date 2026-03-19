@@ -61,13 +61,19 @@ This will stop and remove the Docker container and image, and clean build artifa
 
 ## Makefile Output Suppression and Debug Mode
 
-By default, the Makefile suppresses output from Docker commands to keep logs clean. If you want to see all command output (for troubleshooting or detailed build information), run make with the `-d` flag:
+By default, all command output is sent to the console. Output suppression is now controlled by the `--silent` argument: when you run Make with `--silent`, output from Docker and other commands is hidden. If you want to see all command output (for troubleshooting or detailed build information), simply omit the `--silent` flag:
 
 ```shell
-make -d <target>
+make <target>
 ```
 
-When debug mode is enabled, output suppression is disabled and all command output will be shown.
+To suppress output, use:
+
+```shell
+make --silent <target>
+```
+
+For more information, see the help target in the Makefile (`make help`).
 
 ## Resources
 

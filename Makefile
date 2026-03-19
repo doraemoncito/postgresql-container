@@ -1,9 +1,13 @@
-# Suppress output unless running in debug mode
-ifeq ($(findstring d,$(MAKEFLAGS)),d)
-QUIET =
+# Make will automatically set the `MAKEFLAGS` variable when you run it with certain flags. The 's' flag is used for
+# silent mode, which suppresses command output. We can check for this flag in our Makefile to conditionally set a
+# QUIET variable that we can use to suppress output in our commands.  --silent and --quiet are synonyms for the 's'
+# flag, so this will work regardless of which one is used.
+ifeq ($(findstring s,$(MAKEFLAGS)),s)
+QUIET = > /dev/null 2>&1
 else
-QUIET => /dev/null 2>&1
+QUIET =
 endif
+
 VERSION                := 1.1.0-SNAPSHOT
 
 DOCKER_REGISTRY_URL    ?= localhost.localdomain
@@ -42,7 +46,7 @@ download-flyway: ## 📦 download latest Flyway CLI tarball if it does not alrea
 	@if [ ! -f $(DOCKER_BUILD_DIR)/$(FLYWAY_TARBALL) ]; then \
 		mkdir -p $(DOCKER_BUILD_DIR); \
 		echo "📦  Downloading Flyway ${FLYWAY_VERSION} commandline tarball..."; \
-		curl -sL $(FLYWAY_FULL_URL) -o $(DOCKER_BUILD_DIR)/$(FLYWAY_TARBALL); \
+		curl -L $(FLYWAY_FULL_URL) -o $(DOCKER_BUILD_DIR)/$(FLYWAY_TARBALL) $(QUIET); \
 	else \
 		echo "✅  Flyway tarball already exists: $(DOCKER_BUILD_DIR)/$(FLYWAY_TARBALL)"; \
 	fi
@@ -60,7 +64,7 @@ build: prepare ## 🏗️ build Docker image
 
 push: ## 🚀 push Docker image to registry
 	@echo "🚀  Pushing Docker image: $(DOCKER_IMAGE_NAME):$(VERSION) to registry..."
-	docker push $(DOCKER_IMAGE_NAME):$(VERSION)
+	@docker push $(DOCKER_IMAGE_NAME):$(VERSION)
 
 run: ## 🐳 run Docker container
 	@echo "🐳  Running Docker container from image: $(DOCKER_IMAGE_NAME):$(VERSION) in background..."
@@ -77,17 +81,17 @@ clean: ## 🧹 clean build artifacts
 
 distclean: clean ## 🗑️ remove build artifacts, Docker container and image
 	@echo "🗑️  Cleaning Docker container and image..."
-	@docker stop $(DOCKER_CONTAINER_NAME) $(QUIET) || true
-	@docker rm $(DOCKER_CONTAINER_NAME) $(QUIET) || true
-	@docker rmi -f $(DOCKER_IMAGE_NAME):$(VERSION) $(QUIET) || true
+	@docker stop $(DOCKER_CONTAINER_NAME) > /dev/null 2>&1 || true
+	@docker rm $(DOCKER_CONTAINER_NAME) > /dev/null 2>&1 || true
+	@docker rmi -f $(DOCKER_IMAGE_NAME):$(VERSION) > /dev/null 2>&1 || true
 
 help: ## 💡 show this help message
-	@echo "\033[1mPostgreSQL Container\033[0m — <application description>"
+	@echo "\033[1mPostgreSQL Container\033[0m — A Dockerized PostgreSQL database with Flyway migrations for development and CI/CD workflows."
 	@echo ""
-	@echo "\033[1mUsage:\033[0m make [target] [target ...]"
+	@echo "\033[1mUsage:\033[0m make [--quiet|--silent] [target] [target ...]"
+	@echo ""
+	@echo "  Use --quiet or --silent (e.g. make --quiet docs) to suppress command output."
 	@echo ""
 	@echo "\033[1mTargets:\033[0m"
 	@echo ""
-	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -v '^#' | awk 'BEGIN {FS = ":.*?## "}; {split($$2, a, " "); icon=a[1]; sub(a[1] " ", "", $$2); printf "  %-3s  \033[1m%-22s\033[0m %s\n", icon, $$1, $$2}'
-	@echo ""
-	@echo "\033[1mNote:\033[0m Use the -d flag (make -d <target>) to run in debug mode. Output suppression is disabled in debug mode, so all command output will be shown."
+	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | grep -v '^#' | awk 'BEGIN {FS = ":.*?## "}; {split($$2, a, " "); icon=a[1]; sub(a[1] " ", "", $$2); printf "  %s  \033[1m%-20s\033[0m %s\n", icon, $$1, $$2}' $(QUIET)
